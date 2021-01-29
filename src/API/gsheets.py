@@ -59,3 +59,64 @@ class GSheet():
 
 
 
+    """Extracts the next content to post on social media"""
+    def getPostContent(self, social_media_account):
+       
+        sm_range = self.SOCIAL_MEDIA_COLUMNS[social_media_account][0]
+        target_column = self.SOCIAL_MEDIA_COLUMNS[social_media_account][1]
+        sm_result = self.sheet.values().get(spreadsheetId=self.POST_CONTENT_SHEET_ID,
+                                    range=sm_range).execute()
+        sm_values = sm_result.get('values', [])
+        if not sm_values:
+            print('No data found.')
+        else:
+            target_row = 0
+
+            for idx, row in enumerate(sm_values):
+                try:
+                    if row[int(target_column)] == 'No':
+                        target_row = idx + 2
+                        print(f'Found content on row # {target_row} to post on {social_media_account.title()}')
+                        break
+                    else:
+                        continue
+                except:
+                    pass
+
+
+        # Create the range for the second API call
+            target_range_left = sm_range.split(':')[0][:-1]
+            target_range_right = 'S'
+            target_range = f'{target_range_left}{str(target_row)}:{target_range_right}'
+            target_result = self.sheet.values().get(spreadsheetId=self.POST_CONTENT_SHEET_ID,
+                                    range=target_range).execute()
+            target_values = target_result.get('values', [])
+
+            if not target_values:
+                print('No data found.')
+            else:
+
+                for row in target_values:
+                    try:
+                        post_details = {
+                            'post_message': row[3],
+                            'post_hashtags': row[4],
+                            'post_image_link': row[5],
+                            'post_chracter_count' : row[6],
+                            
+                        }
+
+
+                        print(f'Extracted post details:')
+                        print(f'Message text: {post_details["post_message"]}')
+                        print(f'Location: {post_details["post_location"]}')
+                        print(f'Hashtags: {post_details["post_hashtags"]}')
+                        print(f'Image source: {post_details["post_image_link"]}')
+                        print(f'Character count: {post_details["post_character_count"]}')
+                        self.post_details = post_details
+                        break
+                    except:
+                        pass        
+
+
+
